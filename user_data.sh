@@ -1,34 +1,45 @@
 #!/bin/bash
 
-# Update package repositories
-yum update -y
+# Update the system packages
+sudo yum update -y
 
-# Install PHP, MariaDB, and Nginx
-yum install -y php php-mysqlnd
-yum install -y mariadb mariadb-server
-yum install -y nginx
+# Install PHP
+sudo amazon-linux-extras enable php
+sudo yum install php
 
-# Start and enable services
-systemctl start mariadb
-systemctl enable mariadb
+# Install MariaDB
+sudo amazon-linux-extras enable lamp-mariadb10.2-php7.2=latest
+sudo yum install mariadb-server mariadb
 
-systemctl start nginx
-systemctl enable nginx
+# Secure MariaDB
+sudo mysql_secure_installation
 
-# Secure MariaDB installation
-mysql_secure_installation <<EOF
+# Set the root password for MariaDB
+sudo mysql -u root -p
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'tinitiate';
+FLUSH PRIVILEGES;
 
-y
-tinitiate
-tinitiate
-y
-y
-y
-y
-EOF
+# Install Nginx
+sudo amazon-linux-extras enable nginx1
+sudo yum install nginx
 
-# Create a sample PHP file to test Nginx and PHP
-echo "<?php phpinfo(); ?>" > /usr/share/nginx/html/info.php
+# Install the PHP MySQL Native Driver
+sudo yum install php-mysqlnd
 
-# Restart Nginx
-systemctl restart nginx
+# Start MariaDB and nginx services
+sudo systemctl start mariadb
+sudo systemctl start nginx
+
+# Enable the MariaDB and nginx service to start automatically at boot
+sudo systemctl enable mariadb
+sudo systemctl enable nginx
+
+# Start php and nginx services
+sudo systemctl start mariadb
+sudo systemctl start nginx
+
+# Enable the MariaDB and nginx service to start automatically at boot
+sudo systemctl enable mariadb
+sudo systemctl enable nginx
+
+
