@@ -35,3 +35,7 @@ This file provides an explanation for the Terraform configuration provided in th
     ```hcl
   terraform apply
   ```
+- Run this command to create the resources using tfvars.
+    ```hcl
+  terraform apply -var-file="dev.tfvars" 
+  ```
