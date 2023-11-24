@@ -3,10 +3,10 @@ provider "aws" {
   profile = "sbadmin"
 }
 locals {
-  inbound_rules = jsondecode(file("inbound_rules.json"))
+  inbound_rules = jsondecode(file("${var.inbound_rules_file}"))
 }
 locals {
-  outbound_rules = jsondecode(file("outbound_rules.json"))
+  outbound_rules = jsondecode(file("${var.outbound_rules_file}"))
 }
 
 resource "aws_security_group" "ec2_sg" {
@@ -33,7 +33,7 @@ resource "aws_security_group" "ec2_sg" {
   }
 
   tags = {
-    Name        = "${var.client}-${substr(var.environment, 0, 1)}-web-sg"
+    Name        = "${var.client}-${substr(var.environment, 0, 1)}-rds-sg"
     Environment = var.environment
     Client      = var.client
   }
@@ -41,13 +41,13 @@ resource "aws_security_group" "ec2_sg" {
 }
 
 resource "aws_iam_instance_profile" "instance_profile" {
-  name = "client-dev-web-profile"
+  name = "${var.client}-${substr(var.environment, 0, 1)}-rds-profile"
 
   role = aws_iam_role.s3_access_role.name
 }
 
 resource "aws_iam_role" "s3_access_role" {
-  name = "client-dev-web-s3-role"
+  name = "${var.client}-${substr(var.environment, 0, 1)}-rds-s3-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
@@ -64,26 +64,31 @@ resource "aws_iam_role" "s3_access_role" {
 
   inline_policy {
     name   = "s3-access-policy"
-    policy = file("s3_access_policy.json")
+    policy = file(var.s3_access_policy_file)
   }
 
   tags = {
-    Name        = "client-dev-ec2-s3-role"
+    Name        = "${var.client}-${substr(var.environment, 0, 1)}-ec2-s3-role"
     Environment = var.environment
     Client      = var.client
   }
 }
 
-resource "aws_instance" "web" {
+resource "aws_instance" "rds" {
   ami           = var.ami_id
   instance_type = var.instance_type
   subnet_id     = var.subnet_id  
   key_name      = var.key_name
-  user_data = base64encode(file("user_data.sh")) 
+  # user_data = base64encode(file(var.user_data_file)) 
+  user_data = file(var.user_data_file)
   vpc_security_group_ids = [aws_security_group.ec2_sg.id] 
 
+  root_block_device {
+    volume_size = var.volume_size  # Set the root volume size to 60 GB
+  }
+
   tags = {
-    Name        = "${var.client}-${substr(var.environment, 0, 1)}-aws-standalone"
+    Name        = "${var.client}-${substr(var.environment, 0, 1)}-aws-rds"
     Environment = var.environment
     Client      = var.client
   }
@@ -91,7 +96,7 @@ resource "aws_instance" "web" {
   iam_instance_profile = aws_iam_instance_profile.instance_profile.name
 }
 
-resource "aws_eip" "standalone_eip" {
-  instance = aws_instance.web.id
+resource "aws_eip" "rds_eip" {
+  instance = aws_instance.rds.id
 }
 

@@ -30,7 +30,7 @@ variable "ami_id" {
 
 variable "resources_count" {
   description = "Number of resources to create"
-  default     = 1
+  type        = number
 }
 
 variable "instance_type" {
@@ -39,11 +39,31 @@ variable "instance_type" {
 }
 
 variable "volume_size" {
-  description = "Size of the ebs volume"
+  description = "Size of the EBS volume"
   type        = number
 }
 
 variable "availability_zones" {
   type    = list(string)
   default = ["us-east-2a"]  # Update with your desired availability zones
+}
+
+variable "user_data_file" {
+  description = "Path to the user data script file"
+  type        = string
+}
+
+variable "inbound_rules_file" {
+  description = "Path to the inbound rules JSON file"
+  type        = string
+}
+
+variable "outbound_rules_file" {
+  description = "Path to the outbound rules JSON file"
+  type        = string
+}
+
+variable "s3_access_policy_file" {
+  description = "Path to the S3 access policy JSON file"
+  type        = string
 }
